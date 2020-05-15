@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>问题（C/U/R/D）</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script type="text/html" id="operation_bar">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+			<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="read">详情</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		
+		<script>
+			layui.use(['table', 'layer', 'form'], function(){
+				var table = layui.table;
+				var layer = layui.layer;
+				var form = layui.form;
+				
+				table.render({
+					elem: '#question'
+					,url: '{:url('admin/question/get_question')}'
+					,page: true
+					,cols: [[
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'qid', title: '问题ID', width: 75, templet: function(d){ return 'P' + d.qid; }},
+						{field: 'course_name', title: '课程名', width:90, sort: true},
+						{field: 'chapter_num', title: '章节序号', width: 100, sort: true, templet: function(d){ return '第' + d.chapter_num + '章'; }},
+						{field: 'chapter_name', title: '章节名', width: 90},
+						{field: 'question_name', title: '问题名', width: 80},
+						{field: 'question', title: '内容', width: 70},
+						{field: 'input', title: '输入样例', width: 90},
+						{field: 'output', title: '输出样例', width: 90},
+						{field: 'time', title: '时间(ms)', width: 90},
+						{field: 'memory', title: '空间(Mb)', width: 90},
+						{field: 'template_top', title: '模版顶部', width: 90},
+						{field: 'template_bottom', title: '模版底部', width: 90},
+						{field: 'accept', title: '通过', width: 60},
+						{field: 'total', title: '提交', width: 60},
+						{field: 'acc_avg_row', title: '平均行数', width: 90},
+						{field: 'operation', title: '操作', width: 165, templet: "#operation_bar"}
+					]]
+					,id: 'question_table',
+				});
+				
+				table.on('tool(fun_que)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent === 'edit') {
+						var modify = layer.open({
+							title : '编辑问题',
+							type : 1,
+							area : ['800px', '600px'],
+							maxmin : true,
+							shadeClose : true,
+							content : $('#edit_form'),
+							btn: ['确定', '取消'],
+							success : function(layero, index) {
+								$("#edit_course_name").val(data.course_name);
+								$("#edit_chapter_name").val(data.chapter_name);
+								$("#edit_question_name").val(data.question_name);
+								$("#edit_question").val(data.question);
+								$("#edit_input").val(data.input);
+								$("#edit_output").val(data.output);
+								$("#edit_time").val(data.time);
+								$("#edit_memory").val(data.memory);
+								$("#edit_template_top").val(data.template_top);
+								$("#edit_template_bottom").val(data.template_bottom);
+							},
+							btn1: function(index, layero){
+								layer.confirm('你确定要修改该问题吗?', {icon: 3, title:'提示'}, function(index2){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/question/modify_question')}',
+										dataType: 'json',
+										data: {qid: data.qid, question_name: $("#edit_question_name").val(), 
+												question: $("#edit_question").val(), input: $("#edit_input").val(),
+												output: $("#edit_output").val(), template_top: $("#edit_template_top").val(),
+												template_bottom: $("#edit_template_bottom").val(), time: $("#edit_time").val(), 
+												memory: $("#edit_memory").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('question_table', {});
+												layer.close(modify);
+											}
+											layer.msg(result.message);
+										},
+									});
+									layer.close(index2);
+								});
+							}
+						});
+					} else if (layEvent == 'del') {
+						layer.confirm('会删除一切关联数据，你确定要删除该问题吗?', {icon: 3, title:'提示'}, function(index){
+							var del = layer.open({
+								title : '输入密码',
+								type : 1,
+								area : ['300px', '180px'],
+								maxmin : true,
+								shadeClose : true,
+								content : $('#pas_form'),
+								btn: ['确定', '取消'],
+								btn1: function(index, layero){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/question/del_question')}',
+										dataType: 'json',
+										data: {qid: data.qid, password: $("#password").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('question_table', {});
+												layer.close(del);
+											}
+											layer.msg(result.message);
+										},
+									});
+								}
+							});
+							layer.close(index);
+						});
+					} else if (layEvent == 'read') {
+						location.href = 'detail/qid/' + data.qid;
+					}
+				});
+				
+				$("#search").click(function(){
+					table.reload('question_table', {
+						page: {
+							curr: 1
+						},
+						where: {
+							course_id: $('#search_course').val(),
+							chapter_num: $('#search_chapter').val()
+						}
+					});
+				});
+				
+				$("#add").click(function(){
+					var add = layer.open({
+						title : '添加问题',
+						type : 1,
+						area : ['800px', '600px'],
+						maxmin : true,
+						shadeClose : true,
+						content : $('#add_form'),
+						btn: ['确定', '取消'],
+						btn1: function(index, layero){
+							layer.confirm('你确定要添加该问题吗?', {icon: 3, title:'提示'}, function(index2){
+								$.ajax({
+									type: 'POST',
+									url: '{:url('admin/question/add_question')}',
+									dataType: 'json',
+									data: {course_id: $("#select_course").val(), chapter_num: $("#add_chapter_num").val(),
+											question_name: $("#add_question_name").val(), question: $("#add_question").val(), 
+											input: $("#add_input").val(), output: $("#add_output").val(), template_top: $("#add_template_top").val(),
+											template_bottom: $("#add_template_bottom").val(), time: $("#add_time").val(), 
+											memory: $("#add_memory").val()},
+									success: function(result) {
+										if (result.state == true) {
+											location.href = 'detail/qid/' + result.message;
+										} else {
+											layer.msg(result.message);
+										}
+									},
+								});
+								layer.close(index2);
+							});
+						}
+					});
+				});
+				
+				$("#copy").click(function(){
+					var copy = layer.open({
+						title : '复制问题',
+						type : 1,
+						area : ['500px', '350px'],
+						maxmin : true,
+						shadeClose : true,
+						content : $('#copy_form'),
+						btn: ['确定', '取消'],
+						btn1: function(index, layero){
+							layer.confirm('你确定要复制该问题吗?', {icon: 3, title:'提示'}, function(index2){
+								$.ajax({
+									type: 'POST',
+									url: '{:url('admin/question/copy_question')}',
+									dataType: 'json',
+									data: {old_qid: $("#old_question").val(), new_course_id: $("#select_new_course").val(), new_chapter_num: $("#new_chapter").val()},
+									success: function(result) {
+										if (result.state == true) {
+											location.href = 'detail/qid/' + result.message;
+										} else {
+											layer.msg(result.message);
+										}
+									},
+								});
+								layer.close(index2);
+							});
+						}
+					});
+				});
+				
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		{include file="template/fun_list" /}
+		
+		<div class="content">
+			<div class="list">
+				<div class="row">
+					<div class="col-md-3">
+						<h4>问题（C/U/R/D）</h4>
+					</div>
+					<div class="col-md-3">
+						<form class="layui-form">
+							<select id="search_course">
+								<option value="">请选择课程</option>
+								{volist name="course" id="data" empty="暂无课程"}
+									<option value="{$data.course_id}">{$data.course_name}</option>
+								{/volist}
+							</select>
+						</form>
+					</div>
+					<div class="col-md-3">
+						<input type="text" id="search_chapter" placeholder="请输入章节序号" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-1">
+						<button id="search" class="layui-btn">查询</button>
+					</div>
+					<div class="col-md-1">
+						<button id="add" class="layui-btn">新增</button>
+					</div>
+					<div class="col-md-1">
+						<button id="copy" class="layui-btn">复制</button>
+					</div>
+				</div>
+				<div class="row">
+					<table id="question" lay-filter="fun_que"></table>
+				</div>
+			</div>
+		</div>
+		
+		<form class="layui-form" id="pas_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<input type="password" id="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+			</div>
+		</form>
+		
+		<form class="layui-form" id="edit_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_course_name" placeholder="请输入课程名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节名</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_chapter_name" placeholder="请输入章节名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">问题名</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_question_name" placeholder="请输入问题名称" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">内容</label>
+				<div class="layui-input-block">
+					<textarea id="edit_question" placeholder="请输入问题内容" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">输入</label>
+				<div class="layui-input-block">
+					<textarea id="edit_input" placeholder="请输入输入样例(可以为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">输出</label>
+				<div class="layui-input-block">
+					<textarea id="edit_output" placeholder="请输入输出样例(禁止为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">模版</label>
+				<div class="layui-input-block">
+					<textarea id="edit_template_top" placeholder="请输入模版顶部(可以为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">模版</label>
+				<div class="layui-input-block">
+					<textarea id="edit_template_bottom" placeholder="请输入模版底部(可以为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">时间</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_time" placeholder="请输入限制时长(ms)(默认1000)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">空间</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_memory" placeholder="请输入限制内存(Mb)(默认125)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+		
+		<form class="layui-form" id="add_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<select id="select_course">
+						<option value="">请选择课程</option>
+						{volist name="course" id="data" empty="暂无课程"}
+							<option value="{$data.course_id}">{$data.course_name}</option>
+						{/volist}
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_chapter_num" placeholder="请输入章节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">问题名</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_question_name" placeholder="请输入问题名称" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">内容</label>
+				<div class="layui-input-block">
+					<textarea id="add_question" placeholder="请输入问题内容" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">输入</label>
+				<div class="layui-input-block">
+					<textarea id="add_input" placeholder="请输入输入样例(可以为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">输出</label>
+				<div class="layui-input-block">
+					<textarea id="add_output" placeholder="请输入输出样例(禁止为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">模版</label>
+				<div class="layui-input-block">
+					<textarea id="add_template_top" placeholder="请输入模版顶部(可以为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">模版</label>
+				<div class="layui-input-block">
+					<textarea id="add_template_bottom" placeholder="请输入模版底部(可以为空)" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">时间</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_time" placeholder="请输入限制时长(ms)(默认1000)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">空间</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_memory" placeholder="请输入限制内存(Mb)(默认125)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+		
+		<form class="layui-form" id="copy_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">旧题目</label>
+				<div class="layui-input-block">
+					<input type="text" id="old_question" placeholder="请输入要复制的问题ID" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<select id="select_new_course">
+						<option value="">请选择新问题所在课程</option>
+						{volist name="course" id="data" empty="暂无课程"}
+							<option value="{$data.course_id}">{$data.course_name}</option>
+						{/volist}
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="new_chapter" placeholder="请输入新问题所在的章节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+	</body>
+</html>

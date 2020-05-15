@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>课程（C/U/R/D）</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script>
+			layui.use('table', function(){
+				var table = layui.table;
+				
+				table.render({
+					elem: '#testcase'
+					,url: '{:url('admin/question/get_testcase', ['userid' => $userid, 'qid' => $qid])}'
+					,page: true
+					,cols: [[
+						{field: 'test_id', title: 'ID', hide: true},
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'input', title: '输入'},
+						{field: 'output', title: '输出'},
+						{field: 'state', title: '状态'},
+						{field: 'time', title: '时间(ms)', sort: true},
+						{field: 'memory', title: '内存(Mb)', sort: true}
+					]]
+				});
+				
+			});
+		</script>
+	</head>
+	<body>		
+		<div class="list">
+			<div class="row">
+				<div class="col-md-6"><h4>学生-测试样例</h4></div>
+			</div>
+			<div class="row">
+				<table id="testcase"></table>
+			</div>
+		</div>
+	</body>
+</html>

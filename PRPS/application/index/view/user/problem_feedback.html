@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>问题反馈</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/problem_feedback.css">
+		<script src="__STATIC__/dependency/layer/layer.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				var postUrl = '{:url("index/user/problem_feedback")}';
+				$("#submitButton").click(function(){
+					var problem = document.getElementById("problem").value;
+					document.getElementById("Error").innerHTML = "";
+					$.post(postUrl, {problem: problem}, function(result){
+						if (result.state == true) {
+							location.href = 'success_jump/message/' + result.message + '/controller/' + result.callback['controller'] + '/function/' + result.callback['function'];
+						} else {
+							var tip = layer.msg(result.message);
+							setTimeout(function(){
+								layer.close(tip);
+								}, 1000);
+							document.getElementById("Error").innerHTML = result.message;
+						}
+					});
+				});
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="row justify-content-center">
+							<img src="__STATIC__/img/problem1.jpg" class="img-responsive center-block" id="image">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<form role="form" id="ProblemForm">
+							<h2 class="text-center">问题反馈</h2>
+							<div class="form-group">
+								<label for="problem"><sup><font color="red">*</font></sup>问题描述</label></br>
+								<textarea name="problem" id="problem" class="form-control" rows="10" autocomplete="off"></textarea>
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<input type="button" id = "submitButton" value="提交" class="btn btn-primary buttonwidth">
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<font color='red' size='3'><span id="Error"></span></font>
+							</div>
+						</form>
+					</div>
+					<div class="col-md-3">
+						<div class="row justify-content-center">
+							<img src="__STATIC__/img/problem2.jpg" class="img-responsive center-block" id="image">
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

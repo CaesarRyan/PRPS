@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>章节选择</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/course.css">
+	</head>
+	<body>
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<h4>当前位置：<a href="{:url('index/study/index')}">{$location}</a> &nbsp; > &nbsp;
+					课程：{$course.course_name} &nbsp; > &nbsp; <font color="#666666">课程详情</font></h4>
+				<div class="list" style="padding: 30px 30px 20px 30px;">
+					<div class="row" style="background-color: #FFFFFF;">
+						<div class="col-md-4">
+							<img class="img-responsive center-block" src="__ROOT__/{$course.image}" width="150px">
+						</div>
+						<div class="col-md-4">
+							<h3>课程名称：<font color="#007DDB">{$course.course_name}</font></h3>
+							<h3>任课教师：<font color="#007DDB">{$course.teacher}</font></h3>
+							<h3>课程时间：<font color="#007DDB">{$course.time}</font></h3>
+						</div>
+						<div class="col-md-4">
+							<h3>课程公告：</h3>
+							<p style="font-size: 20px; color: #007DDB;">{$course.announcement}</p>
+						</div>
+					</div>
+				
+					<div class="row" style="margin-top: 30px;">
+						<div class="col-md-12" style="padding: 10px 20px 10px 20px; background-color: #FFFFFF;">
+							<div style="margin-bottom: 20px;">
+								<h3 class="text-center">章节目录</h3>
+							</div>
+							<div class="col-md-8">
+								{volist name="chapter" id="data" empty="暂时没有章节"}
+									<div class="row" style="padding: 20px 30px 0 30px; background-color: #eaeaea;">
+										<div class="col-md-2">
+											<font size="3" class="text-center">第{$i}章</font>
+										</div>
+										<div class="col-md-2 ">
+											<font size="5" color="#2e164a" class="text-center">{$data.chapter_name}</font>
+										</div>
+										<div class="col-md-8">
+											<div class="table-responsive">
+												<table class="table" style="background-color: white;">
+													<tbody>
+														{volist name="data['section']" id="section" key="k" empty="暂时没有章节"}
+															<tr>
+																<td><a href="{:url('index/study/detail', ['course_id' => $course.course_id, 'section_id' => $section.section_id])}"><font color="#007DDB">第{$k}节</font></a></td>
+																<td><a href="{:url('index/study/detail', ['course_id' => $course.course_id, 'section_id' => $section.section_id])}"><font color="#007DDB">{$section.section_name}</font></a></td>
+																<td>
+																	{if condition="$section.accept eq 'false'"} <span style="color:red;">未通过</span>
+																	{else /} <span style="color:green;">已通过</span>
+																	{/if}
+																</td>
+															</tr>
+														{/volist}
+													</tbody>
+												</table>
+											</div>	
+										</div>
+									</div>
+								{/volist}
+							</div>
+							<div class="col-md-3 col-md-offset-1">
+								<div class="row" style="padding: 10px 20px 10px 20px; background-color: #eaeaea;">
+									<h4>累计学习时长：</h4>
+									<p class="text-center" style="font-size: 25px;">
+										{if condition="$time[0] neq 0"} <font color="#0000FF">{$time[0]}</font>时
+										{/if}
+										{if condition="$time[1] neq 0"} <font color="#0000FF">{$time[1]}</font>分
+										{/if}
+										<font color="#0000FF">{$time[2]}</font>秒
+									</p>
+								</div>
+								<div class="row" style="margin-top: 20px; padding: 10px 20px 10px 20px; background-color: #eaeaea;">
+									<h4>当前得分：
+										{if condition="$score eq 100"}<font color="green">{$score}</font>
+										{else /}<font color="red">{$score}</font>
+										{/if}
+									</h4>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

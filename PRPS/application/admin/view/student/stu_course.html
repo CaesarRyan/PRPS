@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>成绩详情</title>
+		{include file="template/link" /}
+		<script src="__STATIC__/dependency/jszip/jszip.min.js"></script>
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script type="text/html" id="operation_bar">
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		
+		<script>
+			layui.use(['table', 'layer', 'form'], function(){
+				var table = layui.table;
+				var layer = layui.layer;
+				var form = layui.form;
+				
+				table.render({
+					elem: '#stu_course'
+					,url: '{:url('admin/student/get_stu_course', ['userid' => $student.userid])}'
+					,page: true
+					,cols: [[
+						{field: 'course_id', title: 'ID', hide: true},
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'course_name', title: '课程名称', sort: true},
+						{field: 'teacher', title: '任课教师'},
+						{field: 'time', title: '授课时间', sort: true},
+						{field: 'score', title: '当前分数', width: 100},
+						{field: 'operation', title: '操作', width: 100, templet: "#operation_bar"}
+					]]
+					,id: 'stu_course_table',
+				});
+				
+				
+				table.on('tool(fun_stu_course)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent == 'del') {
+						layer.confirm('你确定要删除该选修记录吗?', {icon: 3, title:'提示'}, function(index){
+							var del = layer.open({
+								title : '输入密码',
+								type : 1,
+								area : ['300px', '180px'],
+								maxmin : true,
+								shadeClose : true,
+								content : $('#pas_form'),
+								btn: ['确定', '取消'],
+								btn1: function(index, layero){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/student/del_stu_course', ['userid' => $student.userid])}',
+										dataType: 'json',
+										data: {course_id: data.course_id, password: $("#password").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('stu_course_table', {});
+												layer.close(del);
+											}
+											layer.msg(result.message);
+										},
+									});
+								}
+							});
+							layer.close(index);
+						});
+					}
+				});
+				
+				$("#add_stu_course").click(function(){
+					var add = layer.open({
+						title : '选修课程',
+						type : 1,
+						area : ['500px', '300px'],
+						maxmin : true,
+						shadeClose : true,
+						content : $('#add_form'),
+						btn: ['确定', '取消'],
+						btn1: function(index, layero){
+							layer.confirm('你确定要选修该课程吗?', {icon: 3, title:'提示'}, function(index2){
+								$.ajax({
+									type: 'POST',
+									url: '{:url('admin/student/add_stu_course', ['userid' => $student.userid])}',
+									dataType: 'json',
+									data: {course_id: $("#select_course").val()},
+									success: function(result) {
+										if (result.state == true) {
+											table.reload('stu_course_table', {});
+											layer.close(add);
+										}
+										layer.msg(result.message);
+									},
+								});
+								layer.close(index2);
+							});
+						}
+					});
+				});
+
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		{include file="template/fun_list" /}
+		
+		<div class="content">
+			<div class="list">
+				<div class="row">
+					<div class="col-md-4">
+						<h4 style="text-align: center;">班级：<font color="#4a4ae0">{$student.class}</font></h4>
+					</div>
+					<div class="col-md-4">
+						<h4 style="text-align: center;">姓名：<font color="#4a4ae0">{$student.realname}</font></h4>
+					</div>
+					<div class="col-md-4">
+						<h4 style="text-align: center;">学号：<font color="#4a4ae0">{$student.username}</font></h4>
+					</div>
+				</div>
+			</div>
+			
+			<div class="list">
+				<div class="row">
+					<div class="col-md-3"><h4>学生-课程</h4></div>
+					<div class="col-md-1 col-md-offset-8">
+						<button id="add_stu_course" class="layui-btn">新增</button>
+					</div>
+				</div>
+				<div class="row">
+					<table id="stu_course" lay-filter="fun_stu_course"></table>
+				</div>
+			</div>
+		</div>
+		
+		<form class="layui-form" id="pas_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<input type="password" id="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+			</div>
+		</form>
+		
+		<form class="layui-form" id="add_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<select id="select_course">
+						<option value="">请选择课程</option>
+						{volist name="course" id="data" empty="暂无课程"}
+							<option value="{$data.course_id}">{$data.course_name}</option>
+						{/volist}
+					</select>
+				</div>
+			</div>
+		</form>
+	</body>
+</html>

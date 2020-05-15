@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>关卡列表</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/course.css">
+	</head>
+	<body>
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<h4>当前位置：
+					<a href="{:url('index/homework/index')}">{$location}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/chapter', ['course_id' => $chapter.course_id])}">课程：{$course.course_name}</a> &nbsp; > &nbsp;
+					第{$chapter.chapter_num}章：{$chapter.chapter_name} &nbsp; > &nbsp; <font color="#666666">章节详情</font>
+				</h4>
+				
+				<div class="list" style="margin-bottom: 20px; padding: 20px 50px 20px 50px;">
+					<div class="row" style="padding: 10px 20px 20px 20px; background-color: #ffffff;">
+						<div class="table-responsive">
+							<table class="table table-striped">
+								<caption><h3 class="text-center">关卡列表</h3>请按顺序通过各关卡</caption>
+								<thead>
+									<tr>
+										<th>序号</th>
+										<th>知识点</th>
+										<th>难度(0~3)</th>
+										<th>状态</th>
+										<th>入口</th>
+									</tr>
+								</thead>
+								<tbody>
+									{volist name="cluster" id="data"}
+										<tr>
+											<td>关卡{$i}</td>
+											<td>
+												{volist name="data[1]" id="kid" key="k" empty="无知识点"}
+													({$k}) {$knowledge[$kid]};  
+												{/volist}
+											</td>
+											<td>{$data[2]}</td>
+											<td>
+												<font size="3">
+													{if condition="$data[3] eq false"} <span style="color:red;">未通过</span>
+													{else /} <span style="color:green;">已通过</span>
+													{/if}
+												</font>
+											</td>
+											<td>
+												<a href="{:url('index/homework/question', ['chapter_id' => $chapter.chapter_id, 'cluster_id' => $i])}">进入</a>
+											</td>
+										</tr>
+									{/volist}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

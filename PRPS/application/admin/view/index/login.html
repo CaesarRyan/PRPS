@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>后台入口</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/admin/login.css">
+		<script type="text/javascript">
+			$(function(){
+				var postUrl = '{:url("admin/index/login")}';
+				$("#submitButton").click(function(){
+					var username = document.getElementById("username").value;
+					var password = document.getElementById("password").value;
+					document.getElementById("Error").innerHTML = "";
+					$.post(postUrl, {username: username, password: password}, function(result){
+						if (result.state == true) {
+							location.href = 'success_jump/message/' + result.message + '/controller/' + result.callback['controller'] + '/function/' + result.callback['function'];
+						} else {
+							var tip = layer.msg(result.message);
+							setTimeout(function(){
+								layer.close(tip);
+								}, 1000);
+							document.getElementById("Error").innerHTML = result.message;
+						}
+					});
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<header>
+			<div class="col-md-7">
+				<h3 style="padding: 5px 0 0 150px;">程序设计类课程 | 作业提交系统</h3>
+			</div>
+		</header>
+		<main>
+			<div class="container">
+				<div class="row">
+					<div class="col-md-4 col-md-offset-4">
+						<form role="form" id="FormData">
+							<h2 class="text-center">后台入口</h2>
+							<div class="form-group">
+								<label for="username" class="sr-only">Username</label>
+								<input type="text" class="form-control" name="username" id="username" placeholder="用户名">
+							</div>
+							<div class="form-group">
+								<label for="password" class="sr-only">Password</label>
+								<input type="password" class="form-control" name="password" id="password" placeholder="密码" autocomplete="off">
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<input type="button" id = "submitButton" value="登录" class="btn btn-primary buttonwidth">
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<font color='red' size='3'><span id="Error"></span></font>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</main>
+	</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>课节（C/U/R/D）</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script type="text/html" id="operation_bar">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+			<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="read">详情</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		
+		<script type="text/html" id="audioTpl">
+			<audio controls style="width: 10px;"> <source src="__ROOT__/{{ d.audio }}" type="audio/mpeg"> </audio>
+		</script>
+		
+		<script>
+			layui.use(['table', 'layer', 'form', 'upload'], function(){
+				var table = layui.table;
+				var layer = layui.layer;
+				var form = layui.form;
+				var upload = layui.upload;
+				
+				table.render({
+					elem: '#section'
+					,url: '{:url('admin/section/get_section')}'
+					,page: true
+					,cols: [[
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'section_id', title: '课节ID', width: 75},
+						{field: 'course_name', title: '课程名称', width:100, sort: true},
+						{field: 'chapter_num', title: '章节序号', width: 100, sort: true, templet: function(d){ return '第' + d.chapter_num + '章'; }},
+						{field: 'chapter_name', title: '章节名称', width: 100},
+						{field: 'section_num', title: '课节序号', width: 100, sort: true, templet: function(d){ return '第' + d.section_num + '节'; }},
+						{field: 'section_name', title: '课节名称'},
+						{field: 'section_info', title: '课节信息'},
+						{field: 'audio', title: '课节音频', width: 100, templet: '#audioTpl'},
+						{field: 'operation', title: '操作', width: 165, templet: "#operation_bar"}
+					]]
+					,id: 'section_table',
+				});
+				
+				upload.render({
+					elem: '#audio_url',
+					url: '{:url('admin/section/upload_audio')}',
+					accept: 'audio',
+					// exts: 'mp3|mp4',
+					done: function(res, index, update){
+						if (res['code'] == 1) {
+							$("#edit_section_audio").val(res['data']['src']);
+						} else {
+							layer.msg(res.msg);
+						}
+					},
+					error: function(){
+						layer.msg('请求异常');
+					}
+				});
+				
+				upload.render({
+					elem: '#add_audio_url',
+					url: '{:url('admin/section/upload_audio')}',
+					accept: 'audio',
+					// exts: 'mp3|mp4',
+					done: function(res, index, update){
+						if (res['code'] == 1) {
+							$("#add_section_audio").val(res['data']['src']);
+						} else {
+							layer.msg(res.msg);
+						}
+					},
+					error: function(){
+						layer.msg('请求异常');
+					}
+				});
+				
+				table.on('tool(fun_sec)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent === 'edit') {
+						var modify = layer.open({
+							title : '编辑课节',
+							type : 1,
+							area : ['600px', '550px'],
+							maxmin : true,
+							shadeClose : true,
+							content : $('#edit_form'),
+							btn: ['确定', '取消'],
+							success : function(layero, index) {
+								$("#edit_course_name").val(data.course_name);
+								$("#edit_chapter_name").val(data.chapter_name);
+								$("#edit_section_num").val(data.section_num);
+								$("#edit_section_name").val(data.section_name);
+								$("#edit_section_info").val(data.section_info);
+								$("#edit_section_audio").val(data.audio);
+							},
+							btn1: function(index, layero){
+								layer.confirm('你确定要修改该课节吗?', {icon: 3, title:'提示'}, function(index2){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/section/modify_section')}',
+										dataType: 'json',
+										data: {section_id: data.section_id, last_num: data.section_num, section_num: $("#edit_section_num").val(), 
+												section_name: $("#edit_section_name").val(), section_info: $("#edit_section_info").val(),
+												section_audio: $("#edit_section_audio").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('section_table', {});
+												layer.close(modify);
+											}
+											layer.msg(result.message);
+										},
+									});
+									layer.close(index2);
+								});
+							}
+						});
+					} else if (layEvent == 'del') {
+						layer.confirm('会删除一切关联数据，你确定要删除该课节吗?', {icon: 3, title:'提示'}, function(index){
+							var del = layer.open({
+								title : '输入密码',
+								type : 1,
+								area : ['300px', '180px'],
+								maxmin : true,
+								shadeClose : true,
+								content : $('#pas_form'),
+								btn: ['确定', '取消'],
+								btn1: function(index, layero){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/section/del_section')}',
+										dataType: 'json',
+										data: {section_id: data.section_id, password: $("#password").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('section_table', {});
+												layer.close(del);
+											}
+											layer.msg(result.message);
+										},
+									});
+								}
+							});
+							layer.close(index);
+						});
+					} else if (layEvent == 'read') {
+						location.href = 'detail/section_id/' + data.section_id;
+					}
+				});
+				
+				$("#add").click(function(){
+					var add = layer.open({
+						title : '添加课节',
+						type : 1,
+						area : ['600px', '550px'],
+						maxmin : true,
+						shadeClose : true,
+						content : $('#add_form'),
+						btn: ['确定', '取消'],
+						btn1: function(index, layero){
+							layer.confirm('你确定要添加该课节吗?', {icon: 3, title:'提示'}, function(index2){
+								$.ajax({
+									type: 'POST',
+									url: '{:url('admin/section/add_section')}',
+									dataType: 'json',
+									data: {course_id: $("#select_course").val(), chapter_num: $("#add_chapter_num").val(),
+											section_num: $("#add_section_num").val(), section_name: $("#add_section_name").val(), 
+											section_info: $("#add_section_info").val(), section_audio: $("#add_section_audio").val()},
+									success: function(result) {
+										if (result.state == true) {
+											location.href = 'detail/section_id/' + result.message;
+										} else {
+											layer.msg(result.message);
+										}
+									},
+								});
+								layer.close(index2);
+							});
+						}
+					});
+				});
+				
+				$("#copy").click(function(){
+					var copy = layer.open({
+						title : '复制课节',
+						type : 1,
+						area : ['500px', '400px'],
+						maxmin : true,
+						shadeClose : true,
+						content : $('#copy_form'),
+						btn: ['确定', '取消'],
+						btn1: function(index, layero){
+							layer.confirm('你确定要复制该课节吗?', {icon: 3, title:'提示'}, function(index2){
+								$.ajax({
+									type: 'POST',
+									url: '{:url('admin/section/copy_section')}',
+									dataType: 'json',
+									data: {old_section_id: $("#old_section").val(), new_course_id: $("#select_new_course").val(), new_chapter_num: $("#new_chapter").val(), new_section_num: $("#new_section").val()},
+									success: function(result) {
+										if (result.state == true) {
+											location.href = 'detail/section_id/' + result.message;
+										} else {
+											layer.msg(result.message);
+										}
+									},
+								});
+								layer.close(index2);
+							});
+						}
+					});
+				});
+				
+				$("#search").click(function(){
+					table.reload('section_table', {
+						page: {
+							curr: 1
+						},
+						where: {
+							course_id: $('#search_course').val(),
+							chapter_num: $('#search_chapter').val()
+						}
+					});
+				});
+				
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		{include file="template/fun_list" /}
+		
+		<div class="content">
+			<div class="list">
+				<div class="row">
+					<div class="col-md-3">
+						<h4>课节（C/U/R/D）</h4>
+					</div>
+					<div class="col-md-3">
+						<form class="layui-form">
+							<select id="search_course">
+								<option value="">请选择课程</option>
+								{volist name="course" id="data" empty="暂无课程"}
+									<option value="{$data.course_id}">{$data.course_name}</option>
+								{/volist}
+							</select>
+						</form>
+					</div>
+					<div class="col-md-3">
+						<input type="text" id="search_chapter" placeholder="请输入章节序号" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-1">
+						<button id="search" class="layui-btn">查询</button>
+					</div>
+					<div class="col-md-1">
+						<button id="add" class="layui-btn">新增</button>
+					</div>
+					<div class="col-md-1">
+						<button id="copy" class="layui-btn">复制</button>
+					</div>
+				</div>
+				<div class="row">
+					<table id="section" lay-filter="fun_sec"></table>
+				</div>
+			</div>
+		</div>
+		
+		<form class="layui-form" id="pas_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<input type="password" id="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+			</div>
+		</form>
+		
+		<form class="layui-form" id="edit_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_course_name" placeholder="请输入课程名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节名</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_chapter_name" placeholder="请输入章节名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_section_num" placeholder="请输入课节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课节名</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_section_name" placeholder="请输入课节名称" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">信息</label>
+				<div class="layui-input-block">
+					<textarea id="edit_section_info" placeholder="请输入课节信息" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label"><button type="button" class="layui-btn" id="audio_url">上传音频</button></label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_section_audio" placeholder="请选择文件" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+		</form>
+		
+		<form class="layui-form" id="add_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<select id="select_course">
+						<option value="">请选择课程</option>
+						{volist name="course" id="data" empty="暂无课程"}
+							<option value="{$data.course_id}">{$data.course_name}</option>
+						{/volist}
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_chapter_num" placeholder="请输入章节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_section_num" placeholder="请输入课节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课节名</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_section_name" placeholder="请输入课节名称" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">信息</label>
+				<div class="layui-input-block">
+					<textarea id="add_section_info" placeholder="请输入课节信息" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label"><button type="button" class="layui-btn" id="add_audio_url">上传音频</button></label>
+				<div class="layui-input-block">
+					<input type="text" id="add_section_audio" placeholder="请选择文件" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+		</form>
+		
+		<form class="layui-form" id="copy_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">旧课节</label>
+				<div class="layui-input-block">
+					<input type="text" id="old_section" placeholder="请输入要复制的课节ID" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<select id="select_new_course">
+						<option value="">请选择新课节所在课程</option>
+						{volist name="course" id="data" empty="暂无课程"}
+							<option value="{$data.course_id}">{$data.course_name}</option>
+						{/volist}
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="new_chapter" placeholder="请输入新课节所在的章节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="new_section" placeholder="请输入新课节的课节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+	</body>
+</html>

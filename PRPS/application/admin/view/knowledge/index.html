@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>知识点（C/U/R/D）</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script type="text/html" id="operation_bar">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		
+		<script>
+			layui.use(['table', 'layer', 'form'], function(){
+				var table = layui.table;
+				var layer = layui.layer;
+				var form = layui.form;
+				
+				table.render({
+					elem: '#knowledge'
+					,url: '{:url('admin/knowledge/get_knowledge')}'
+					,page: true
+					,cols: [[
+						{field: 'kid', title: 'ID', hide: true},
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'course_name', title: '课程名称', sort: true},
+						{field: 'chapter_num', title: '章节序号', sort: true, templet: function(d){ return '第' + d.chapter_num + '章'; }},
+						{field: 'chapter_name', title: '章节名称'},
+						{field: 'know_num', title: '知识点学习顺序', sort: true, templet: function(d){ return '第' + d.know_num + '个'; }},
+						{field: 'knowledge', title: '知识点内容'},
+						{field: 'difficulty', title: '难度(0～5)', width: 100},
+						{field: 'operation', title: '操作', width: 120, templet: "#operation_bar"}
+					]]
+					,id: 'know_table',
+				});
+				
+				table.on('tool(fun_know)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent === 'edit') {
+						var modify = layer.open({
+							title : '编辑知识点',
+							type : 1,
+							area : ['600px', '410px'],
+							maxmin : true,
+							shadeClose : true,
+							content : $('#edit_form'),
+							btn: ['确定', '取消'],
+							success : function(layero, index) {
+								$("#course_name").val(data.course_name);
+								$("#chapter_name").val(data.chapter_name);
+								$("#know_num").val(data.know_num);
+								$("#know_content").val(data.knowledge);
+								$("#difficulty").val(data.difficulty);
+							},
+							btn1: function(index, layero){
+								layer.confirm('你确定要修改该知识点吗?', {icon: 3, title:'提示'}, function(index2){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/knowledge/modify_knowledge')}',
+										dataType: 'json',
+										data: {kid: data.kid, last_num: data.know_num, know_num: $("#know_num").val(), 
+												knowledge: $("#know_content").val(), difficulty: $("#difficulty").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('know_table', {});
+												layer.close(modify);
+											}
+											layer.msg(result.message);
+										},
+									});
+									layer.close(index2);
+								});
+							}
+						});
+					} else if (layEvent == 'del') {
+						layer.confirm('会删除一切关联数据，你确定要删除该知识点吗?', {icon: 3, title:'提示'}, function(index){
+							var del = layer.open({
+								title : '输入密码',
+								type : 1,
+								area : ['300px', '180px'],
+								maxmin : true,
+								shadeClose : true,
+								content : $('#pas_form'),
+								btn: ['确定', '取消'],
+								btn1: function(index, layero){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/knowledge/del_knowledge')}',
+										dataType: 'json',
+										data: {kid: data.kid, password: $("#password").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('know_table', {});
+												layer.close(del);
+											}
+											layer.msg(result.message);
+										},
+									});
+								}
+							});
+							layer.close(index);
+						});
+					}
+				});
+				
+				$("#search").click(function(){
+					table.reload('know_table', {
+						page: {
+							curr: 1
+						},
+						where: {
+							course_id: $('#search_course').val(),
+							chapter_num: $('#search_chapter').val()
+						}
+					});
+				});
+				
+				$("#add").click(function(){
+					var add = layer.open({
+						title : '添加知识点',
+						type : 1,
+						area : ['600px', '410px'],
+						maxmin : true,
+						shadeClose : true,
+						content : $('#add_form'),
+						btn: ['确定', '取消'],
+						btn1: function(index, layero){
+							layer.confirm('你确定要添加该知识点吗?', {icon: 3, title:'提示'}, function(index2){
+								$.ajax({
+									type: 'POST',
+									url: '{:url('admin/knowledge/add_knowledge')}',
+									dataType: 'json',
+									data: {course_id: $("#select_course").val(), chapter_num: $("#add_chapter_num").val(),
+											know_num: $("#add_know_num").val(), knowledge: $("#add_knowledge").val(), 
+											difficulty: $("#add_difficulty").val()},
+									success: function(result) {
+										if (result.state == true) {
+											table.reload('know_table', {});
+											layer.close(add);
+										}
+										layer.msg(result.message);
+									},
+								});
+								layer.close(index2);
+							});
+						}
+					});
+				});
+
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		{include file="template/fun_list" /}
+		
+		<div class="content">
+			<div class="list">
+				<div class="row">
+					<div class="col-md-3">
+						<h4>知识点（C/U/R/D）</h4>
+					</div>
+					<div class="col-md-3 col-md-offset-1">
+						<form class="layui-form">
+							<select id="search_course">
+								<option value="">请选择课程</option>
+								{volist name="course" id="data" empty="暂无课程"}
+									<option value="{$data.course_id}">{$data.course_name}</option>
+								{/volist}
+							</select>
+						</form>
+					</div>
+					<div class="col-md-3">
+						<input type="text" id="search_chapter" placeholder="请输入章节序号" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-1">
+						<button id="search" class="layui-btn">查询</button>
+					</div>
+					<div class="col-md-1">
+						<button id="add" class="layui-btn">新增</button>
+					</div>
+				</div>
+				<div class="row">
+					<table id="knowledge" lay-filter="fun_know"></table>
+				</div>
+			</div>
+		</div>
+		
+		<form class="layui-form" id="pas_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<input type="password" id="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+			</div>
+		</form>
+		
+		<form class="layui-form" id="edit_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<input type="text" id="course_name" placeholder="请输入课程名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节名</label>
+				<div class="layui-input-block">
+					<input type="text" id="chapter_name" placeholder="请输入章节名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">顺序号</label>
+				<div class="layui-input-block">
+					<input type="text" id="know_num" placeholder="请输入知识点序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">内容</label>
+				<div class="layui-input-block">
+					<input type="text" id="know_content" placeholder="请输入知识点内容" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">难度</label>
+				<div class="layui-input-block">
+					<input type="text" id="difficulty" placeholder="请输入知识点难度(0~5)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+		
+		<form class="layui-form" id="add_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<select id="select_course">
+						<option value="">请选择课程</option>
+						{volist name="course" id="data" empty="暂无课程"}
+							<option value="{$data.course_id}">{$data.course_name}</option>
+						{/volist}
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节号</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_chapter_num" placeholder="请输入章节序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">内容</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_knowledge" placeholder="请输入知识点内容" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">序号</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_know_num" placeholder="请输入知识点序号" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">难度</label>
+				<div class="layui-input-block">
+					<input type="text" id="add_difficulty" placeholder="请输入知识点难度" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+	</body>
+</html>

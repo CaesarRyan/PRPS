@@ -1,0 +1,13 @@
+{
+    "db_user":"root",
+    "db_pass":"12345",
+    "db_ip":"localhost",
+    "db_port":"3306",
+    "db_database":"psDB",
+    
+    "server_ip":"localhost",
+    "server_port":9906,
+    
+    "python3_path": "/usr/bin/python3.6",
+    "python2_path": "/usr/bin/python2.7"
+}

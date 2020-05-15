@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>用户登录</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/login.css">
+		<script src="__STATIC__/dependency/layer/layer.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				var postUrl = '{:url("index/index/login")}';
+				$("#submitButton").click(function(){
+					var username = document.getElementById("username").value;
+					var password = document.getElementById("password").value;
+					document.getElementById("Error").innerHTML = "";
+					$.post(postUrl, {username: username, password: password}, function(result){
+						if (result.state == true) {
+							location.href = 'success_jump/message/' + result.message + '/controller/' + result.callback['controller'] + '/function/' + result.callback['function'];
+						} else {
+							var tip = layer.msg(result.message);
+							setTimeout(function(){
+								layer.close(tip);
+								}, 1000);
+							document.getElementById("Error").innerHTML = result.message;
+						}
+					});
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<header>
+			<div class="col-md-7">
+				<h3 class="tag">程序设计类课程 | 作业提交系统</h3>
+			</div>
+			<div class="col-md-5">
+				<ul class="menu">
+					<li><a href="http://www.xjtu.edu.cn" target="_blank">交大首页</a></li>
+					<li><a href="https://baike.baidu.com/item/C++/99272" target="_blank">课程介绍</a></li>
+					<li><a href="https://pan.baidu.com/s/1_Nn-le9Wr26Of9oEz8tvdA" target="_blank">课程资料</a></li>
+					<li><a href="https://www.luogu.com.cn" target="_blank">相关推荐</a></li>
+				</ul>
+			</div>
+		</header>
+		<main>
+			<div class="container">
+				<div class="row">
+					<div class="col-md-6" id="tip">
+						<h2>欢迎进入程序设计类课程作业提交系统</h2>
+						</br></br>
+						<h4>注意事项:</h4>
+						<ol>
+							<li>参与本课程的学生请使用学号作为用户名注册。</li>
+							<li>本系统会根据您的答题情况进行个性化推荐。</li>
+							<li>目前支持程序设计语言C/C++/Python。</li>
+							<li>杜绝抄袭，快乐编程。</li>
+						</ol>
+						</br></br>
+						<b>当前为测试版本，若出现问题请向我们反馈，感谢您的配合！</b></br>
+						<b>Good luck and have fun!</b>
+					</div>
+					<div class="col-md-4 col-md-offset-2">
+						<form role="form" id="FormData">
+							<h2 class="text-center">用户登录</h2>
+							<div class="form-group">
+								<label for="username" class="sr-only">Username</label>
+								<input type="text" class="form-control" name="username" id="username" placeholder="用户名">
+							</div>
+							<div class="form-group">
+								<label for="password" class="sr-only">Password</label>
+								<input type="password" class="form-control" name="password" id="password" placeholder="密码" autocomplete="off">
+							</div>
+							<div class="form-group">
+								<div>
+									<div style="float: left;"><a href="{:url('index/index/get_back_password')}" style="font-size: 17px;">忘记密码</a></div>
+									<div style="float: right"><a href="{:url('index/index/register')}" style="font-size: 17px;">注册账号</a></div>
+									<div style="clear: both;"></div>
+								</div>
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<input type="button" id = "submitButton" value="登录" class="btn btn-primary buttonwidth">
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<font color='red' size='3'><span id="Error"></span></font>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</main>
+		<footer>
+			<div class="jumbotron text-center" style="margin-bottom: 0">
+				<ul class="list-inline">
+					<li><a href="http://www.cs.xjtu.edu.cn/info/2035/1438.htm" target="_blank">关于我们</a></li><b>|</b>
+					<li><a href="{:url('index/user/problem_feedback')}">问题反馈</a></li><b>|</b>
+					<li><a href="mailto:3066731463@qq.com">联系我们</a></li><b>|</b>
+					<li><a href="http://ctec.xjtu.edu.cn" target="_blank">Copyright @西安交通大学计算机教学实验中心</a></li>
+				</ul>
+			</div>
+		</footer>
+	</body>
+</html>

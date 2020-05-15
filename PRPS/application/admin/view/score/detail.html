@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>成绩详情</title>
+		{include file="template/link" /}
+		<script src="__STATIC__/dependency/jszip/jszip.min.js"></script>
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script type="text/html" id="hrefTpl">
+			<a href="__ROOT__/admin/question/detail/qid/{{d.qid}}" class="layui-table-link">P{{d.qid}}&nbsp;{{d.question_name}}</a>
+		</script>
+		
+		<script type="text/html" id="operation_bar1">
+			<a class="layui-btn layui-btn-xs" lay-event="edit_stu_que">编辑</a>
+			<a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="testcase">详情</a>
+			<a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="download">下载</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del_stu_que">删除</a>
+		</script>
+		
+		<script type="text/html" id="operation_bar2">
+			<a class="layui-btn layui-btn-xs" lay-event="edit_stu_sec">编辑</a>
+		</script>
+		
+		<script>
+			layui.use(['table', 'layer', 'form'], function(){
+				var table = layui.table;
+				var layer = layui.layer;
+				var form = layui.form;
+				
+				table.render({
+					elem: '#stu_que'
+					,url: '{:url('admin/score/get_stu_que', ['course_id' => $course.course_id, 'userid' => $student.userid])}'
+					,page: true
+					,cols: [[
+						{type:'checkbox', fixed: 'left'},
+						{type: 'numbers', title: '序号'},
+						{field: 'chapter', title: '章节', width:110, sort: true, templet: function(d){ return '第' + d.chapter_num + '章 ' + d.chapter_name; }},
+						{field: 'question', title: '问题', width: 120, templet: '#hrefTpl'},
+						{field: 'time', title: '提交时间', width: 165, sort: true},
+						{field: 'state', title: '状态', width: 90, sort: true, templet: function(d){
+								if (d.state == '0') {
+									return '<font color="#a5b22b">待判定</font>';
+								} else if (d.state == '1') {
+									return '<font color="blue">等待中</font>';
+								} else if (d.state == '2') {
+									return '<font color="#d56920">判定中</font>';
+								} else if (d.state == '3') {
+									return '<font color="green">通过</font>';
+								} else if (d.state == '4') {
+									return '<font color="red">未通过</font>';
+								} else {
+									return '<font color="grey">取消判定</font>';
+								}
+							}},
+						{field: 'score', title: '分数', width: 60},
+						{field: 'answer', title: '答案'},
+						{field: 'row', title: '行数', width: 60},
+						{field: 'compiler', title: '编译器', width: 100},
+						{field: 'result', title: '编译信息', width: 95},
+						{field: 'operation', title: '操作', width: 220, templet: "#operation_bar1"}
+					]]
+					,id: 'stu_que_table',
+				});
+				
+				table.on('tool(fun_question)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent === 'edit_stu_que') {
+						var modify = layer.open({
+							title : '编辑学生答案',
+							type : 1,
+							area : ['700px', '580px'],
+							maxmin : true,
+							shadeClose : true,
+							content : $('#edit_que_form'),
+							btn: ['确定', '取消'],
+							success : function(layero, index) {
+								$("#edit_que_chapter").val(data.chapter_name);
+								$("#edit_que_name").val(data.question_name);
+								$("#edit_que_time").val(data.time);
+								$("#edit_que_state").val(data.state);
+								$("#edit_que_score").val(data.score);
+								$("#edit_que_answer").val(data.answer);
+								$("#edit_que_result").val(data.result);
+							},
+							btn1: function(index, layero){
+								layer.confirm('你确定要修改该学生记录吗?', {icon: 3, title:'提示'}, function(index2){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/score/modify_stu_que', ['userid' => $student.userid])}',
+										dataType: 'json',
+										data: {qid: data.qid, time: data.time, state: $("#edit_que_state").val(), 
+												score: $("#edit_que_score").val(), answer: $("#edit_que_answer").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('stu_que_table', {});
+												layer.close(modify);
+											}
+											layer.msg(result.message);
+										},
+									});
+									layer.close(index2);
+								});
+							}
+						});
+					} else if (layEvent == 'testcase') {
+						layer.open({
+							type: 2,
+							title: '测试样例',
+							maxmin: true,
+							shadeClose: true,
+							area : ['800px' , '520px'],
+							content: '__ROOT__/admin/question/testcase/userid/{$student.userid}/qid/' + data.qid
+						});
+					} else if (layEvent == 'del_stu_que') {
+						layer.confirm('你确定要删除该条记录吗?', {icon: 3, title:'提示'}, function(index){
+							var del = layer.open({
+								title : '输入密码',
+								type : 1,
+								area : ['300px', '180px'],
+								maxmin : true,
+								shadeClose : true,
+								content : $('#pas_form'),
+								btn: ['确定', '取消'],
+								btn1: function(index, layero){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/score/del_stu_que', ['userid' => $student.userid])}',
+										dataType: 'json',
+										data: {qid: data.qid, time: data.time, password: $("#password").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('stu_que_table', {});
+												layer.close(del);
+											}
+											layer.msg(result.message);
+										},
+									});
+								}
+							});
+							layer.close(index);
+						});
+					} else if (layEvent == 'download') {
+						if ('{$course.compile}' == 'g++') {
+							var compile = '.cpp';
+						} else if ('{$course.compile}' == 'gcc') {
+							var compile = '.c';
+						} else if ('{$course.compile}' == 'python') {
+							var compile = '.py';
+						} else {
+							var compile = '.txt';
+						}
+						var aEle = document.createElement("a");
+						blob = new Blob([data.answer]);
+						aEle.download = 'P' + data.qid + '_' + '{$student.username}' + '_' + data.time + compile;
+						aEle.href = URL.createObjectURL(blob);
+						aEle.click();
+					}
+				});
+				
+				$("#search_homework").click(function(){
+					table.reload('stu_que_table', {
+						page: {
+							curr: 1
+						},
+						where: {
+							state: $('#search_state').val(),
+							chapter_num: $('#search_homework_chapter').val(),
+							qid: $('#search_question').val()
+						}
+					});
+				});
+				
+				$("#downloads").click(function(){
+					var checkStatus = table.checkStatus('stu_que_table');
+					if (checkStatus.data.length == 0) {
+						layer.msg('请在左侧复选框中选择要下载的选项');
+					} else {
+						if ('{$course.compile}' == 'g++') {
+							var compile = '.cpp';
+						} else if ('{$course.compile}' == 'gcc') {
+							var compile = '.c';
+						} else if ('{$course.compile}' == 'python') {
+							var compile = '.py';
+						} else {
+							var compile = '.txt';
+						}
+						var zip = new JSZip();
+						var root_path_name = '{$student.username}' + '_' + '{$student.realname}' + '_' + '{$course.course_name}';
+						var root_path = zip.folder(root_path_name);
+						
+						var folders = new Array();
+						var chapter_folder = new Array();
+						var num = 0;
+						
+						for (var i = 0; i < checkStatus.data.length; i++) {
+							var flag = false;
+							var filename = 'P' + checkStatus.data[i].qid + '_' + checkStatus.data[i].time + compile;
+							for (var j = 0; j < num; j++) {
+								if (checkStatus.data[i].chapter_name == folders[j]) {
+									flag = true;
+									chapter_folder[j].file(filename, checkStatus.data[i].answer);
+								}
+							}
+							if (!flag) {
+								folders[num] = checkStatus.data[i].chapter_name;
+								chapter_folder[num] = root_path.folder(folders[num]);
+								chapter_folder[num].file(filename, checkStatus.data[i].answer);
+								num++;
+							}
+						}
+						zip.generateAsync({type: "blob"}).then(function(content) {
+								var aEle = document.createElement("a");
+								aEle.download = root_path_name + '.zip';
+								aEle.href = URL.createObjectURL(content);
+								aEle.click();
+						});
+					}
+				});
+				
+				table.render({
+					elem: '#stu_section'
+					,url: '{:url('admin/score/get_stu_sec', ['course_id' => $course.course_id, 'userid' => $student.userid])}'
+					,page: true
+					,cols: [[
+						{field: 'section_id', title: 'ID', hide: true},
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'chapter_num', title: '章节序号', width:100, sort: true},
+						{field: 'chapter_name', title: '章节名称', width: 120},
+						{field: 'section_num', title: '课节序号', width: 100, sort: true, templet: function(d){ return '第' + d.section_num + '节'; }},
+						{field: 'section_name', title: '课节名称'},
+						{field: 'time', title: '学习时长', width: 165, templet: function(d){ 
+							var h = (d.time - d.time % 3600) / 3600;
+							var m = (d.time % 3600 - d.time % 3600 % 60) / 60;
+							var s = d.time % 3600 % 60;
+							return h + '时 ' + m + '分 ' + s + '秒'; }},
+						{field: 'accept', title: '状态', width: 75, sort: true, templet: function(d){ 
+								if (d.accept == 'true') {
+									return '<font color="green">通过</font>';
+								} else {
+									return '<font color="red">未通过</font>';
+								}
+							}},
+						{field: 'operation', title: '操作', width: 80, templet: "#operation_bar2"}
+					]]
+					,id: 'stu_sec_table',
+				});
+				
+				$("#search_study").click(function(){
+					table.reload('stu_sec_table', {
+						page: {
+							curr: 1
+						},
+						where: {
+							chapter_num: $('#search_study_chapter').val(),
+							section_num: $('#search_section').val()
+						}
+					});
+				});
+				
+				table.on('tool(fun_section)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent === 'edit_stu_sec') {
+						var modify = layer.open({
+							title : '编辑学生学习情况',
+							type : 1,
+							area : ['700px', '400px'],
+							maxmin : true,
+							shadeClose : true,
+							content : $('#edit_sec_form'),
+							btn: ['确定', '取消'],
+							success : function(layero, index) {
+								$("#edit_sec_chapter").val(data.chapter_name);
+								$("#edit_sec_name").val(data.section_name);
+								$("#edit_sec_time").val(data.time);
+								$("#edit_sec_accept").val(data.accept);
+							},
+							btn1: function(index, layero){
+								layer.confirm('你确定要修改该学生学习情况吗?', {icon: 3, title:'提示'}, function(index2){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/score/modify_stu_sec', ['userid' => $student.userid])}',
+										dataType: 'json',
+										data: {section_id: data.section_id, time: $("#edit_sec_time").val(), accept: $("#edit_sec_accept").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('stu_sec_table', {});
+												layer.close(modify);
+											}
+											layer.msg(result.message);
+										},
+									});
+									layer.close(index2);
+								});
+							}
+						});
+					}
+				});
+
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		{include file="template/fun_list" /}
+		
+		<div class="content">
+			<div class="list">
+				<div class="row">
+					<div class="col-md-4">
+						<h4 style="text-align: center;">课程名称：<font color="#077d09">{$course.course_name}</font></h4>
+					</div>
+					<div class="col-md-4">
+						<h4 style="text-align: center;">授课时间：<font color="#077d09">{$course.time}</font></h4>
+					</div>
+					<div class="col-md-4">
+						<h4 style="text-align: center;">任课教师：<font color="#077d09">{$course.teacher}</font></h4>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<h4 style="text-align: center;">学生班级：<font color="#4a4ae0">{$student.class}</font></h4>
+					</div>
+					<div class="col-md-4">
+						<h4 style="text-align: center;">学生姓名：<font color="#4a4ae0">{$student.realname}</font></h4>
+					</div>
+					<div class="col-md-4">
+						<h4 style="text-align: center;">学生学号：<font color="#4a4ae0">{$student.username}</font></h4>
+					</div>
+				</div>
+			</div>
+			
+			<div class="list">
+				<div class="row">
+					<div class="col-md-3"><h4>作业成绩</h4></div>
+					<div class="col-md-2 col-md-offset-1">
+						<form class="layui-form">
+							<select id="search_state">
+								<option value="">请选择状态</option>
+								<option value="3">通过</option>
+								<option value="4">未通过</option>
+								<option value="5">取消判定</option>
+							</select>
+						</form>
+					</div>
+					<div class="col-md-2">
+						<input type="text" id="search_homework_chapter" placeholder="请输入课程章节序号" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-2">
+						<input type="text" id="search_question" placeholder="请输入问题id" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-1">
+						<button id="search_homework" class="layui-btn">查询</button>
+					</div>
+					<div class="col-md-1">
+						<button id="downloads" class="layui-btn">下载</button>
+					</div>
+				</div>
+				<div class="row">
+					<table id="stu_que" lay-filter="fun_question"></table>
+				</div>
+			</div>
+		
+			<div class="list">
+				<div class="row">
+					<div class="col-md-3"><h4>学习成绩</h4></div>
+					<div class="col-md-3  col-md-offset-2">
+						<input type="text" id="search_study_chapter" placeholder="请输入课程章节序号" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-3">
+						<input type="text" id="search_section" placeholder="请输入课节序号" autocomplete="off" class="layui-input">
+					</div>
+					<div class="col-md-1">
+						<button id="search_study" class="layui-btn">查询</button>
+					</div>
+				</div>
+				<div class="row">
+					<table id="stu_section" lay-filter="fun_section"></table>
+				</div>
+			</div>
+		</div>
+		
+		<form class="layui-form" id="pas_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<input type="password" id="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+			</div>
+		</form>
+		
+		<form class="layui-form" id="edit_que_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_que_chapter" placeholder="请输入章节名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">问题</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_que_name" placeholder="请输入问题ID" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">时间</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_que_time" placeholder="请输入提交时间" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">状态</label>
+				<div class="layui-input-block">
+					<select id="edit_que_state">
+						<option value="">请选择状态</option>
+						<option value="0">待判定</option>
+						<option value="3">通过</option>
+						<option value="4">未通过</option>
+						<option value="5">取消判定</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">分数</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_que_score" placeholder="请输入分数(0~100)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">答案</label>
+				<div class="layui-input-block">
+					<textarea id="edit_que_answer" placeholder="请输入答案" class="layui-textarea"></textarea>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">编译</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_que_result" placeholder="请输入编译信息" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+		</form>
+		
+		<form class="layui-form" id="edit_sec_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">章节</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_sec_chapter" placeholder="请输入章节名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">课节</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_sec_name" placeholder="请输入课节名称" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">时间</label>
+				<div class="layui-input-block">
+					<input type="text" id="edit_sec_time" placeholder="请输入学习时长" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">状态</label>
+				<div class="layui-input-block">
+					<select id="edit_sec_accept">
+						<option value="">请选择状态</option>
+						<option value="true">通过</option>
+						<option value="false">未通过</option>
+					</select>
+				</div>
+			</div>
+		</form>
+		
+	</body>
+</html>

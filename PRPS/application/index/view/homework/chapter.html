@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>章节选择</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/course.css">
+	</head>
+	<body>
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<h4>当前位置：<a href="{:url('index/homework/index')}">{$location}</a> &nbsp; > &nbsp;
+					课程：{$course.course_name} &nbsp; > &nbsp; <font color="#666666">课程详情</font></h4>
+				<div class="list" style="padding: 30px 30px 20px 30px;">
+					<div class="row" style="background-color: #FFFFFF;">
+						<div class="col-md-4">
+							<img class="img-responsive center-block" src="__ROOT__/{$course.image}" width="150px">
+						</div>
+						<div class="col-md-4">
+							<h3>课程名称：<font color="#007DDB">{$course.course_name}</font></h3>
+							<h3>任课教师：<font color="#007DDB">{$course.teacher}</font></h3>
+							<h3>课程时间：<font color="#007DDB">{$course.time}</font></h3>
+						</div>
+						<div class="col-md-4">
+							<h3>课程公告：</h3>
+							<p style="font-size: 20px; color: #007DDB;">{$course.announcement}</p>
+						</div>
+					</div>
+				
+					<div class="row" style="padding: 30px 10px 20px 0;">
+						<div class="col-md-8" style="background-color: #FFFFFF;">
+							<div class="panel-heading">
+								<h3 class="text-center">章节目录（共{$chapter->total()}章）</h3>
+							</div>
+							<div class="table-responsive">
+								<table class="table table-striped">
+									<caption><p>本课程需要按顺序逐个进入下一章节，系统将会按照答题情况自动评分</p></caption>
+									<thead>
+										<tr>
+											<th>序号</th>
+											<th>章节</th>
+											<th>状态</th>
+										</tr>
+									</thead>
+									<tbody>
+										{volist name="chapter" id="data" empty="暂时没有章节"}
+											<tr>
+												<td><font size="4">第{$i}章</font></td>
+												<td>
+													<a href="{:url('index/homework/cluster', ['chapter_id' => $data.chapter_id])}">
+														<font size="4" color="#007DDB">{$data.chapter_name}</font>
+													</a>
+												</td>
+												<td>
+													<font size="4">
+														{if condition="$data.state eq 'false'"} <span style="color:red;">未通过</span>
+														{else /} <span style="color:green;">已通过</span>
+														{/if}
+													</font>
+												</td>
+											</tr>
+										{/volist}
+									</tbody>
+								</table>
+							</div>
+							<div class="text-center" style="margin: 0px 0 17px 0;">{$chapter->render()}</div>
+						</div>
+
+						<div class="col-md-3" style="margin-left: 50px;">
+							<div class="row" style="padding:15px 20px 15px 20px; background-color: #ffffff;">
+								<h4>当前得分：
+									{if condition="$score eq 100"}<font color="green">{$score}</font>
+									{else /}<font color="red">{$score}</font>
+									{/if}
+								</h4>
+							</div>
+							<div class="row" style="margin-top: 30px; padding:30px 20px 20px 20px; background-color: #ffffff;">
+								<h4 class="text-center">为您推荐：</h4>
+								<h4>最近提交：</h4>
+								{if condition="empty($recent_question)"} 暂无
+								{else /}
+									<div class="list-group">
+										<a href="{:url('index/homework/recommend', ['qid' => $recent_question.qid])}" class="list-group-item">
+											<font size="3" color="#007DDB">P{$recent_question.qid} &nbsp; {$recent_question.question_name}</font>
+										</a>
+									</div>
+								{/if}
+								
+								<h4>最近尝试的题目：</h4>
+								<div class="list-group">
+									{volist name="recent_fail_question" id="data" empty="暂无"}
+										<a href="{:url('index/homework/recommend', ['qid' => $data.qid])}" class="list-group-item">
+											<font size="3" color="#007DDB">P{$data.qid} &nbsp; {$data.question_name}</font>
+										</a>
+									{/volist}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

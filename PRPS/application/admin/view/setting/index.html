@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>重要参数设置</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/admin/main_page.css">
+		
+		<script type="text/html" id="operation_bar">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+		</script>
+		
+		<script>
+			layui.use(['table', 'layer', 'form'], function(){
+				var table = layui.table;
+				var layer = layui.layer;
+				var form = layui.form;
+				
+				table.render({
+					elem: '#setting'
+					,url: '{:url('admin/setting/get_setting')}'
+					,page: true
+					,cols: [[
+						{field: 'course_id', title: 'ID', hide: true},
+						{type: 'numbers', title: '序号', fixed: 'left'},
+						{field: 'course_name', title: '课程名称'},
+						{field: 'save_max_num', title: '每个学生的每个问题保存的最大数量'},
+						{field: 'least_num', title: '每个簇中最少的做题数量'},
+						{field: 'most_know_num', title: '问题中所包含的最多的知识点数量'},
+						{field: 'homework_score_proportion', title: '作业课程分数占比'},
+						{field: 'max_recommend_num', title: '最大的推荐数量'},
+						{field: 'offset', title: '做题数或通过数为0的补偿量'},
+						{field: 'weight_done_num', title: '做题数权重'},
+						{field: 'weight_accept', title: '通过率权重'},
+						{field: 'weight_difficulty', title: '难度权重'},
+						{field: 'study_timelimit', title: '学习系统用户程序时间限制(ms)'},
+						{field: 'study_memorylimit', title: '学习系统用户程序内存限制(Mb)'},
+						{field: 'operation', title: '操作', width: 70, templet: "#operation_bar"}
+					]]
+					,id: 'setting_table'
+				});
+				
+				table.on('tool(fun_setting)', function(obj) {
+					var data = obj.data;
+					var layEvent = obj.event;
+					if (layEvent === 'edit') {
+						var modify = layer.open({
+							title : '修改课程参数',
+							type : 1,
+							area : ['600px', '500px'],
+							maxmin : true,
+							shadeClose : true,
+							content : $('#edit_form'),
+							btn: ['确定', '取消'],
+							success : function(layero, index) {
+								$("#course_name").val(data.course_name);
+								$("#save_max_num").val(data.save_max_num);
+								$("#least_num").val(data.least_num);
+								$("#most_know_num").val(data.most_know_num);
+								$("#homework_score_proportion").val(data.homework_score_proportion);
+								$("#max_recommend_num").val(data.max_recommend_num);
+								$("#offset").val(data.offset);
+								$("#weight_done_num").val(data.weight_done_num);
+								$("#weight_accept").val(data.weight_accept);
+								$("#weight_difficulty").val(data.weight_difficulty);
+								$("#study_timelimit").val(data.study_timelimit);
+								$("#study_memorylimit").val(data.study_memorylimit);
+							},
+							btn1: function(index, layero){
+								layer.confirm('你确定要修改该课程的这些参数吗?', {icon: 3, title:'提示'}, function(index2){
+									$.ajax({
+										type: 'POST',
+										url: '{:url('admin/setting/modify_setting')}',
+										dataType: 'json',
+										data: {course_id: data.course_id, save_max_num: $("#save_max_num").val(),
+												least_num: $("#least_num").val(), most_know_num: $("#most_know_num").val(), 
+												homework_score_proportion: $("#homework_score_proportion").val(),
+												max_recommend_num: $("#max_recommend_num").val(), offset: $("#offset").val(),
+												weight_done_num: $("#weight_done_num").val(), weight_accept: $("#weight_accept").val(),
+												weight_difficulty: $("#weight_difficulty").val(), study_timelimit: $("#study_timelimit").val(),
+												study_memorylimit: $("#study_memorylimit").val()},
+										success: function(result) {
+											if (result.state == true) {
+												table.reload('setting_table', {});
+												layer.close(modify);
+											}
+											layer.msg(result.message);
+										},
+									});
+									layer.close(index2);
+								});
+							}
+						});
+					}
+				});
+
+			});
+		</script>
+	</head>
+	<body>
+		{include file="template/header" /}
+		{include file="template/fun_list" /}
+		
+		<div class="content">
+			<div class="list">
+				<div class="row">
+					<div class="col-md-6"><h4>重要参数配置</h4></div>
+				</div>
+				<div class="row">
+					<table id="setting" lay-filter="fun_setting"></table>
+				</div>
+			</div>
+		</div>
+		
+		<form class="layui-form" id="pas_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<input type="password" id="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+			</div>
+		</form>
+		
+		<form class="layui-form" id="edit_form" hidden="hidden" style="padding: 20px 20px 0 20px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">课程名</label>
+				<div class="layui-input-block">
+					<input type="text" id="course_name" placeholder="请输入课程名" autocomplete="off" class="layui-input" readonly="true">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">保存数</label>
+				<div class="layui-input-block">
+					<input type="text" id="save_max_num" placeholder="请输入每个学生的每个问题保存的最大数量" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">簇</label>
+				<div class="layui-input-block">
+					<input type="text" id="least_num" placeholder="请输入每个簇中最少的做题数量" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">问题</label>
+				<div class="layui-input-block">
+					<input type="text" id="most_know_num" placeholder="请输入问题中所包含的最多的知识点数量" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">分数</label>
+				<div class="layui-input-block">
+					<input type="text" id="homework_score_proportion" placeholder="请输入作业课程分数占比" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">推荐数</label>
+				<div class="layui-input-block">
+					<input type="text" id="max_recommend_num" placeholder="请输入最大的推荐数量" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">补偿量</label>
+				<div class="layui-input-block">
+					<input type="text" id="offset" placeholder="请输入做题数或通过数为0的补偿量" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">做题数</label>
+				<div class="layui-input-block">
+					<input type="text" id="weight_done_num" placeholder="请输入做题数权重" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">通过率</label>
+				<div class="layui-input-block">
+					<input type="text" id="weight_accept" placeholder="请输入通过率权重" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">难度</label>
+				<div class="layui-input-block">
+					<input type="text" id="weight_difficulty" placeholder="请输入难度权重" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">时间</label>
+				<div class="layui-input-block">
+					<input type="text" id="study_timelimit" placeholder="请输入学习系统用户程序时间限制(ms)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">内存</label>
+				<div class="layui-input-block">
+					<input type="text" id="study_memorylimit" placeholder="请输入学习系统用户程序内存限制(Mb)" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+		</form>
+		
+	</body>
+</html>

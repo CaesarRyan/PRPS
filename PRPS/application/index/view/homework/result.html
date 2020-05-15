@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>提交结果</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/course.css">
+	</head>
+	<body>
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<h4>当前位置：
+					<a href="{:url('index/homework/index')}">{$location}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/chapter', 'course_id=' . $chapter.course_id)}">课程：{$course.course_name}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/cluster', 'chapter_id=' . $chapter.chapter_id)}">第{$chapter.chapter_num}章：{$chapter.chapter_name}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/question', ['chapter_id' => $chapter.chapter_id, 'cluster_id' => $cluster_id])}">关卡{$cluster_id}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/submit', ['chapter_id' => $chapter.chapter_id, 'cluster_id' => $cluster_id, 'qid' => $question['qid']])}">P{$question['qid']}：{$question['question_name']}</a> &nbsp; > &nbsp; 
+					<font color="#666666">提交结果</font>
+				</h4>
+				<div class="list" style="margin-bottom: 40px; padding: 15px 30px 15px 30px;">
+					<div style="padding: 10px 20px 10px 20px;">
+						<div class="row" style="background-color: #ffffff;">
+							<div class="col-md-2" style="padding: 0px 20px 15px 20px;">
+								<h3>编译结果</h3>
+							</div>
+							<div class="col-md-10" style="padding: 10px 5px 5px 5px;">
+								<font size="4" color="blue">{$message}</font>
+							</div>
+						</div>
+					</div>
+					<div style="padding: 10px 20px 10px 20px; ">
+						<div class="row" style="background-color: #ffffff;">
+							<div class="col-md-2" style="padding: 0px 20px 15px 20px;">
+								<h3>测试样例</h3>
+							</div>
+							<div class="col-md-10" >
+								{volist name="test_result" id="data" empty="暂无"}
+									<div class="col-md-4" style="padding: 10px 10px 5px 10px;">
+										<div style="background-color: #dce2cd; padding: 5px 10px 5px 10px;">
+											<h4>状态：<font size="4" color="red">{$data.state}</font></h4>
+											<h4>时间：<font size="4" color="blue">{$data.time}ms</font></h4>
+											<h4>空间：<font size="4" color="green">{$data.memory}Mb</font></h4>
+										</div>
+									</div>
+								{/volist}
+							</div>
+						</div>
+					</div>
+					<div style="padding: 10px 20px 10px 20px;">
+						<div class="row" style="background-color: #ffffff;">
+							<div class="col-md-2" style="padding: 0px 20px 15px 20px;">
+								<h3>相关推荐：</h3>
+							</div>
+							<div class="col-md-10" style="padding: 10px 5px 5px 5px;">
+								<div class="list-group">
+									{volist name="recommend_question_list" id="data" empty="暂无"}
+										<a href="{:url('index/homework/recommend', ['qid' => $data['qid']])}" class="list-group-item">
+											<font size="3" color="#007DDB">P{$data['qid']} &nbsp; {$data['question_name']}</font>
+										</a>
+									{/volist}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

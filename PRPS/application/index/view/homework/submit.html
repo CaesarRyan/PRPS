@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>问题详情</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/course.css">
+		<script src="__STATIC__/dependency/ace/ace.js" type="text/javascript"></script>
+		<script src="__STATIC__/dependency/ace/theme-xcode.js" type="text/javascript"></script>
+		<script src="__STATIC__/dependency/ace/ext-language_tools.js" type="text/javascript"></script>
+		<script src="__STATIC__/dependency/layer/layer.js"></script>
+		<script type="text/javascript">
+			var template_flag = '{$template_flag}';
+			
+			$(function(){
+				$.fn.autoHeight = function(){
+					function autoHeight(elem){
+						elem.style.height = 'auto';
+						elem.scrollTop = 0;
+						elem.style.height = elem.scrollHeight + 'px';
+					}
+					this.each(function(){
+						autoHeight(this);
+						$(this).on('keyup', function(){
+							autoHeight(this);
+						});
+					});
+				}
+				$('textarea[autoHeight]').autoHeight();
+			});
+			
+			function tip() {
+				if (template_flag == true) {
+					layer.confirm('本题是模版题，在编辑框里填写需要的代码即可，若是python问题，请注意缩进！',
+						{icon: 3, title:'提示'}, function(index){
+						layer.close(index);
+					});
+				}
+			}
+			
+			function submit() {
+				var code = editor.getValue();
+				if (!code) {
+					layer.msg('代码禁止为空');
+				} else {
+					layer.confirm('你确定要提交该代码吗?', {icon: 3, title:'提示'}, function(index){
+						layer.close(index);
+						var loading = layer.load();
+						$.when(wait_result(code)).done(function(data) {
+							layer.close(loading);
+							location.href = '{:url('index/homework/get_result', ['chapter_id' => $chapter.chapter_id, 'cluster_id' => $cluster_id, 'qid' => $question.qid, 'way' => 1])}';
+						});
+					});
+				}
+			}
+			
+			function wait_result(code) {
+				var defer = $.Deferred();
+				var row = editor.session.getLength();
+				$.ajax({
+					type: 'POST',
+					url: '{:url('index/homework/judge', ['qid' => $question.qid])}',
+					dataType: 'json',
+					async: true,
+					data: {code: code, compiler: $("#select_compiler").val(), template_flag: template_flag, row: row},
+					success: function(result) {
+						defer.resolve(result);
+					},
+				});
+				return defer;
+			}
+		</script>
+	</head>
+	<body onload="tip()">
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<h4>当前位置：
+					<a href="{:url('index/homework/index')}">{$location}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/chapter', 'course_id=' . $chapter.course_id)}">课程：{$course.course_name}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/cluster', 'chapter_id=' . $chapter.chapter_id)}">第{$chapter.chapter_num}章：{$chapter.chapter_name}</a> &nbsp; > &nbsp;
+					<a href="{:url('index/homework/question', ['chapter_id' => $chapter.chapter_id, 'cluster_id' => $cluster_id])}">关卡{$cluster_id}</a> &nbsp; > &nbsp;
+					P{$question['qid']}：{$question['question_name']} &nbsp; > &nbsp; <font color="#666666">问题详情</font>
+				</h4>
+				<div class="list" style="margin-bottom: 40px; padding: 15px 30px 15px 30px;">
+					<div class="row" style="padding: 10px 20px 20px 20px;">
+						<div class="col-md-8">
+							<div class="row" style="padding: 0 20px 15px 20px; background-color: #ffffff;">
+								<h3>问题描述</h3>
+								<font size="4">{$question['question']}</font>
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 0 10px 10px 10px; background-color: #ffffff;">
+								{if condition="empty($question['input']) eq false"}
+									<div class="col-md-6">
+										<h4>输入样例</h4>
+										<textarea class="form-control" autoHeight="true" rows="1" readonly="readonly">{$question['input']}</textarea>
+									</div>
+								{/if}
+								<div class="col-md-6">
+									<h4>输出样例</h4>
+									<textarea class="form-control" autoHeight="true" rows="1" readonly="readonly">{$question['output']}</textarea>
+								</div>
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 10px 20px 0 20px; background-color: #ffffff;">
+								<div class="row">
+									<div class="col-md-2">
+										<label><font size="4">提交代码</font></label>
+									</div>
+									<div class="col-md-3">
+										<select class="form-control" id="select_compiler">
+											{volist name="compiler" id="data"}
+												<option>{$data}</option>
+											{/volist}
+										</select>
+									</div>
+								</div>
+								{if condition="empty($question['template_top']) eq false"}
+									<textarea class="form-control" autoHeight="true" rows="1" style="font-size: 20px; color: blue;" readonly="readonly">{$question['template_top']}</textarea>
+								{/if}
+								<div id="editor" style="width: 100%; height: 500px; background-color: #f4f4f4;">{$stu_answer['answer']}</div>
+									<script>
+										ace.require("ace/ext/language_tools");
+										var editor = ace.edit("editor");
+										editor.$blockScrolling = Infinity;
+										editor.setFontSize(20);
+										editor.session.setMode("ace/mode/{$editor_mode}");
+										editor.setOptions({
+											enableBasicAutocompletion: true,
+											enableSnippets: true,
+											enableLiveAutocompletion: true
+										});
+										editor.setTheme("ace/theme/xcode");
+									</script>
+								{if condition="empty($question['template_bottom']) eq false"}
+									<textarea class="form-control" autoHeight="true" rows="1" style="font-size: 20px; color: blue;" readonly="readonly">{$question['template_bottom']}</textarea>
+								{/if}
+								<div style="text-align: center; margin-top: 10px; margin-bottom: 10px">
+									<button type="button" class="btn btn-primary buttonwidth" onclick="submit()">提交</button>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3" style="margin-left: 60px;">
+							<div class="row" style="padding: 10px 20px 10px 20px; background-color: #ffffff;">
+								<h4>提交： <font size="4" color="#0000FF">{$question.total}</font></h4>
+								<h4>通过： <font size="4" color="green">{$question.accept}</font></h4>
+								<h4>通过的平均代码行数： <font size="4" color="red">{$question.acc_avg_row}</font></h4>
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 10px 15px 10px 15px; background-color: #ffffff;">
+								<h4>知识点：</h4>
+								{volist name="cluster_know" id="data" empty="无知识点"}
+									({$i}) {$data}</br>
+								{/volist}
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 10px 15px 10px 15px; background-color: #ffffff;">
+								{if condition="empty($stu_answer) eq false"}
+									<h4>最近提交：</h4><font size="4" color="#0000FF">{$stu_answer['time']}</font>
+									{if condition="$stu_answer['score'] eq 100"}
+										<h4>分数：<font size="4" color="green">{$stu_answer['score']}</font></h4>
+										<h4>状态：<font size="4" color="green">通过</font></h4>
+									{else /}
+										<h4>分数：<font size="4" color="red">{$stu_answer['score']}</font></h4>
+										<h4>状态：<font size="4" color="red">未通过</font></h4>
+									{/if}
+									</h4>
+								{else /}
+									<h4>最近提交：<font size="4" color="#0000FF">--</font></h4>
+									<h4>分数：<font size="4" color="red">--</font></h4>
+									<h4>状态：<font size="4" color="red">未尝试</font></h4>
+								{/if}
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 10px 15px 10px 15px; background-color: #ffffff;">
+								<h4>章节完成度：<font size="4" color="#0000FF">{$chapter_finish}%</font></h4>
+								<h4>课程完成度：<font size="4" color="#0000FF">{$all_finish}%</font></h4>
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 10px 15px 10px 15px; background-color: #ffffff;">
+								<h4>相关推荐：</h4>
+								<div class="list-group">
+									{volist name="recommend_question_list" id="data" empty="暂无"}
+										<a href="{:url('index/homework/recommend', ['qid' => $data['qid']])}" class="list-group-item">
+											<font size="3" color="#007DDB">P{$data['qid']} &nbsp; {$data['question_name']}</font>
+										</a>
+									{/volist}
+								</div>
+							</div>
+							<div class="row" style="margin-top: 20px; padding: 10px 15px 10px 15px; background-color: #ffffff;">
+								<a href="{:url('index/user/myinfo')}"><h4>查看历史提交</h4></a>
+							</div>
+						</div>
+					</div>
+					<h3>上次提交结果</h3>
+					<div style="padding: 10px 20px 10px 20px;">
+						<div class="row" style="background-color: #ffffff;">
+							<div class="col-md-2" style="padding: 0px 20px 15px 20px;">
+								<h3>编译结果</h3>
+							</div>
+							<div class="col-md-10" style="padding: 10px 5px 5px 5px;">
+								<font size="4" color="blue">{$message}</font>
+							</div>
+						</div>
+					</div>
+					<div style="padding: 10px 20px 10px 20px; ">
+						<div class="row" style="background-color: #ffffff;">
+							<div class="col-md-2" style="padding: 0px 20px 15px 20px;">
+								<h3>测试样例</h3>
+							</div>
+							<div class="col-md-10" >
+								{volist name="test_result" id="data" empty="暂无"}
+									<div class="col-md-4" style="padding: 10px 10px 5px 10px;">
+										<div style="background-color: #dce2cd; padding: 5px 10px 5px 10px;">
+											<h4>状态：<font size="4" color="red">{$data.state}</font></h4>
+											<h4>时间：<font size="4" color="blue">{$data.time}ms</font></h4>
+											<h4>空间：<font size="4" color="green">{$data.memory}Mb</font></h4>
+										</div>
+									</div>
+								{/volist}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

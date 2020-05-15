@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>课程选择</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/course.css">
+	</head>
+	<body>
+		{include file="template/header" /}
+		<main>
+			<div class="container">
+				<h4>当前位置：{$location} &nbsp; > &nbsp; <font color="#666666">课程列表</font></h4>
+				<div class="list" style="margin-bottom:20px;">
+					<div class="row" style="padding:20px 0 25px 0;">
+						<h2 class="text-center">课程目录（共{$list->total()}门）</h2>
+					</div>
+					<div class="row" style="padding-bottom: 30px;">
+						{volist name="list" id="course"}
+							<div class="col-md-4">
+								<a href="{:url('index/study/chapter', ['course_id' => $course.course_id])}">
+									<img class="img-responsive center-block" src="__ROOT__/{$course.image}" width="250px">
+									<h4 class="text-center">课程名称：{$course.course_name}</h4>
+									<h4 class="text-center">任课教师：{$course.teacher}</h4>
+									<h4 class="text-center">课程时间：{$course.time}</h4>
+								</a>
+							</div>
+						{/volist}
+					</div>
+					<div class="text-center">{$list->render()}</div>
+				</div>
+			</div>
+		</main>
+	{include file="template/footer" /}

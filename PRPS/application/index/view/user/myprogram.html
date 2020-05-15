@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>我的程序</title>
+		<script src="__STATIC__/dependency/ace/ace.js" type="text/javascript"></script>
+		<script src="__STATIC__/dependency/ace/theme-xcode.js" type="text/javascript"></script>
+		<script src="__STATIC__/dependency/ace/ext-language_tools.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="editor" style="width: 100%; height: 462px; background-color: #f4f4f4;">{$program}</div>
+		<script>
+			ace.require("ace/ext/language_tools");
+			var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+			editor.setFontSize(20);
+			editor.session.setMode("ace/mode/c_cpp");
+			editor.setOptions({
+				enableBasicAutocompletion: true,
+				enableSnippets: true,
+				enableLiveAutocompletion: true
+			});
+			editor.setTheme("ace/theme/xcode");
+		</script>
+	</body>
+</html>

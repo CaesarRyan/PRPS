@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>注册账号</title>
+		{include file="template/link" /}
+		<link rel="stylesheet" href="__CSS__/register.css">
+		<script src="__STATIC__/dependency/layer/layer.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				var postUrl = '{:url("index/index/register")}';
+				$("#submitButton").click(function(){
+					var username = document.getElementById("username").value;
+					var password = document.getElementById("password").value;
+					var repassword = document.getElementById("password2").value;
+					var realname = document.getElementById("realName").value;
+					var phone = document.getElementById("phoneNumber").value;
+					var question = document.getElementById("question").value;
+					var answer = document.getElementById("answer").value;
+					document.getElementById("Error").innerHTML = "";
+					$.post(postUrl, 
+						{username: username, password: password, repassword: repassword, realname: realname, phone: phone, question: question, answer: answer}, 
+						function(result){
+							if (result.state == true) {
+								location.href = 'success_jump/message/' + result.message + '/controller/' + result.callback['controller'] + '/function/' + result.callback['function'];
+							} else {
+								var tip = layer.msg(result.message);
+								setTimeout(function(){
+									layer.close(tip);
+									}, 1000);
+								document.getElementById("Error").innerHTML = result.message;
+							}
+						}
+					);
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<main>
+			<div class="container">
+				<div class="row">
+					<div class="col-md-4">
+						<h3 class="tag">程序设计类课程 | 作业提交系统</h3>
+					</div>
+					<div class="col-md-4">
+						<form role="form" id="UserForm">
+							<h2 class="text-center">注册账号</h2>
+							<div class="form-group">
+								<label for="username"><sup><font color="red">*</font></sup>用户名</label></br>
+								<input type="text" name="username" id="username" class="form-control" placeholder="请输入用户名" autocomplete="off">
+							</div>
+							<div class="form-group">
+								<label for="password"><sup><font color="red">*</font></sup>密码</label></br>
+								<input type="password" name="password" id="password" class="form-control" placeholder="请输入5-15位密码" autocomplete="off">
+							</div>
+							<div class="form-group">
+								<label for="password2"><sup><font color="red">*</font></sup>确认密码</label></br>
+								<input type="password" name="password2" id="password2" class="form-control" placeholder="请保证两次输入一致" autocomplete="off">
+							</div>
+							<div id="extraInfo">
+								<div class="form-group">
+									<label for="realName"><sup><font color="red">*</font></sup>真实姓名</label></br>
+									<input type="text" name="realName" id="realName" class="form-control" placeholder="真实姓名" autocomplete="off">
+								</div>
+								<div class="form-group">
+									<label for="phoneNumber"><sup><font color="red">*</font></sup>联系电话</label></br>
+									<input type="text" name="phoneNumber" id="phoneNumber" class="form-control" placeholder="11位数字" autocomplete="off">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="question"><sup><font color="red">*</font></sup>密保问题</label></br>
+								<input type="text" name="question" id="question" class="form-control" placeholder="切记谨慎设置密保问题,防止账号被盗" autocomplete="off">
+							</div>
+							<div class="form-group">
+								<label for="answer" style="font-size: 18px;"><sup><font color="red">*</font></sup>密保答案</label></br>
+								<input type="text" name="answer" id="answer" class="form-control" placeholder="切记谨慎设置密保答案,防止账号被盗" autocomplete="off">
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<input type="button" id = "submitButton" value="注册" class="btn btn-primary buttonwidth">
+							</div>
+							<div class="form-group" style="text-align: center; margin-bottom: 10px">
+								<font color='red' size='3'><span id="Error"></span></font>
+							</div>
+						</form>
+					</div>
+					<div class="col-md-2 col-md-offset-2">
+						<a href="{:url('index/index/login')}"><h3><span class="glyphicon glyphicon-log-in"></span>登录</h3></a>
+					</div>
+				</div>
+			</div>
+		</main>
+		<footer>
+			<div class="jumbotron text-center" style="margin-bottom: 0">
+				<ul class="list-inline">
+					<li><a href="http://www.cs.xjtu.edu.cn/info/2035/1438.htm" target="_blank">关于我们</a></li><b>|</b>
+					<li><a href="{:url('index/user/problem_feedback')}">问题反馈</a></li><b>|</b>
+					<li><a href="mailto:3066731463@qq.com">联系我们</a></li><b>|</b>
+					<li><a href="http://ctec.xjtu.edu.cn" target="_blank">Copyright @西安交通大学计算机教学实验中心</a></li>
+				</ul>
+			</div>
+		</footer>
+	</body>
+</html>
