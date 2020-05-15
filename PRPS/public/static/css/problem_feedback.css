@@ -1,0 +1,78 @@
+html {
+	height: 100%;
+}
+body {
+	min-height: 100%;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	background: url('../img/head.png') no-repeat 40% 50px, url('../img/login.png') repeat;
+	background-size: 100%, auto;
+}
+main {
+	padding-bottom: 100px;
+}
+footer {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+}
+ul li {
+	margin: 0 15px 0 15px;
+	font-size: 16px;
+}
+ul li a:hover {
+	color: green;
+}
+.linkstyle {
+	color: white;
+}
+label {
+	font-size: 18px;
+}
+.tag {
+	margin: 25px 0 0 80px;
+}
+#image {
+	margin-top: 200px;
+}
+#ProblemForm {
+	margin-top: 100px;
+	-webkit-box-shadow: -4px 7px 46px 2px rgba(0, 0, 0, 0.1);
+	-moz-box-shadow: -4px 7px 46px 2px rgba(0, 0, 0, 0.1);
+	-o-box-shadow: -4px 7px 46px 2px rgba(0, 0, 0, 0.1);
+	box-shadow: -4px 7px 46px 2px rgba(0, 0, 0, 0.1);
+	background: #ffffff;
+	padding: 10px 30px 30px 30px;
+}
+#ProblemForm h2 {
+	letter-spacing: 2px;
+	font-size: 20px;
+	margin: 20px 0 30px 0;
+	color: #000000;
+}
+#ProblemForm .form-group {
+	margin-bottom: 30px;
+}
+#ProblemForm .form-group a:hover {
+	color: red;
+}
+#ProblemForm .form-control::-webkit-input-placeholder {
+	color: rgba(0, 0, 0, 0.3);
+}
+#ProblemForm .form-control::-moz-placeholder {
+	color: rgba(0, 0, 0, 0.3);
+}
+#ProblemForm.form-control:-ms-input-placeholder {
+	color: rgba(0, 0, 0, 0.3);
+}
+#ProblemForm .form-control:-moz-placeholder {
+	color: rgba(0, 0, 0, 0.3);
+}
+#ProblemForm .form-control:focus, .fh5co-form .form-control:active {
+	border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+}
+.buttonwidth {
+	font-size: 18px;
+	width: 100px !important;
+}
