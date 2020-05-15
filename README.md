@@ -13,5 +13,5 @@
 ![](https://github.com/CaesarRyan/PRPS/raw/master/image/前台.png)
 
 ## 后台
-![](https://github.com/CaesarRyan/PRPS/raw/master/image/back1.jpg)  
+![](https://github.com/CaesarRyan/PRPS/raw/master/image/后台1.png)  
 ![](https://github.com/CaesarRyan/PRPS/raw/master/image/后台2.png)
