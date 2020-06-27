@@ -10,8 +10,8 @@
 ### 判题机部署：[https://github.com/CaesarRyan/PRPS/blob/master/Judger/README.md](https://github.com/CaesarRyan/PRPS/blob/master/Judger/README.md)
 
 ## 前台
-![](https://github.com/CaesarRyan/PRPS/raw/master/image/前台.png)
+![](https://github.com/CaesarRyan/PRPS/raw/master/image/系统截图/前台/答题.png)
 
 ## 后台
-![](https://github.com/CaesarRyan/PRPS/raw/master/image/后台1.png)  
-![](https://github.com/CaesarRyan/PRPS/raw/master/image/后台2.png)
+![](https://github.com/CaesarRyan/PRPS/raw/master/image/系统截图/后台/添加课程.png)  
+![](https://github.com/CaesarRyan/PRPS/raw/master/image/系统截图/后台/学生成绩.png)
